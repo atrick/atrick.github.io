@@ -1,6 +1,8 @@
 ---
-layout: page
+layout: default
 title: UnsafePointer API for Type Punning
+categories: proposal
+date: 2016-03-12
 ---
 
 # UnsafePointer API for Type Punning

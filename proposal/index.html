@@ -1,0 +1,17 @@
+---
+layout: default
+title: Proposals
+category: proposal
+---
+{% for page in site.pages %}
+  {% if page.categories contains 'proposal' %}
+	<div class="page">
+		<h3 class="title"><a href="{{ page.url }}">{{ page.title }}</a></h3>
+		<p class="meta">Date: {{ page.date }}</p>
+		<div class="entry">
+                  {% assign paragraphs = page.content | split: "<p>" %}
+                  {{ paragraphs[1] | strip_html | truncatewords: 100 }}
+		</div>
+	</div>
+  {% endif %}
+{% endfor %}

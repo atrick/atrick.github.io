@@ -9,7 +9,6 @@
 title: atrick - working swift docs
 email: atrick@apple.com
 description: > # > means to ignore newlines until the next unindented line
-  Official guidelines for Swift API design.
 timezone: America/Los_Angeles
 baseurl: ""
 url: "http://atrick.github.io"
@@ -38,7 +37,7 @@ whitelist:
 defaults:
   -
     scope:
-      path: "proposals"
+      path: ""
       type: pages
     values:
       official_site: http://atrick.github.io
