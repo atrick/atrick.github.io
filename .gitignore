@@ -28,7 +28,12 @@ cscope.out
 #==============================================================================#
 # Directories to ignore (do not add trailing '/'s, they skip symlinks).
 #==============================================================================#
+
 _site
+utils
+sphinx/_build
+sphinx/_static
+sphinx/conf.py
 
 # Finder metadata
 .DS_Store

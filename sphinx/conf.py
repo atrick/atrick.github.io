@@ -1,1 +1,0 @@
-/s/spublic/swift/docs/conf.py
