@@ -34,6 +34,7 @@ utils
 sphinx/_build
 sphinx/_static
 sphinx/conf.py
+design/_static
 
 # Finder metadata
 .DS_Store
