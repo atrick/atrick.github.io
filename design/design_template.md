@@ -1,8 +1,8 @@
 ---
 layout: default
-title: d1
+title: Template
 categories: design
 date: 2016-03-12
 ---
-Fake design doc.
+Dummy design doc.
 
