@@ -76,7 +76,7 @@ date: 2016-04-09
 <p>Swift enforces type safe access to memory and follows strict aliasing
 rules. However, code that uses unsafe APIs or imported types can
 circumvent the language&#8217;s natural type safety. Consider the following
-example of <em>type punning</em> using the UnsafePointer type:</p>
+example of <em>type punning</em> using the <code class="docutils literal"><span class="pre">UnsafePointer</span></code> type:</p>
 <div class="highlight-swift"><div class="highlight"><pre><span class="kd">let </span><span class="nv">ptrT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">UnsafeMutablePointer</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">(</span><span class="n">allocatingCapacity</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span>
 <span class="c1">// Store T at this address.</span>
 <span class="n">ptrT</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">T</span><span class="p">()</span>
@@ -89,14 +89,15 @@ example of <em>type punning</em> using the UnsafePointer type:</p>
 with the stored type <code class="docutils literal"><span class="pre">T</span></code> (see <a class="reference internal" href="#layout-compatible-types">Layout Compatible Types</a>).</p>
 <div class="admonition-note admonition">
 <p class="first admonition-title">NOTE</p>
-<p class="last">Unsafe[Mutable]Pointer is a type safe API. When a program accesses memory
-via UnsafePointer, The UnsafePointer element should be consistent
-with the type used to allocate the memory. The &#8216;unsafe&#8217; in
-UnsafePointer actually refers to memory management&#8211;it is the
-user&#8217;s responsibility to manage the object&#8217;s lifetime. Type safety
-is not only a desirable programming model, it is an absolute
-requirement performance reasons, and UnsafePointer is intended for
-high-performance implementations of data structures.</p>
+<p class="last"><code class="docutils literal"><span class="pre">Unsafe[Mutable]Pointer</span></code> is a type safe API. When a program
+accesses memory via <code class="docutils literal"><span class="pre">UnsafePointer</span></code>, The <code class="docutils literal"><span class="pre">UnsafePointer</span></code>
+element should be consistent with the type used to allocate the
+memory. The &#8216;unsafe&#8217; in <code class="docutils literal"><span class="pre">UnsafePointer</span></code> actually refers to memory
+management&#8211;it is the user&#8217;s responsibility to manage the object&#8217;s
+lifetime. Type safety is not only a desirable programming model, it
+is an absolute requirement performance reasons, and <code class="docutils literal"><span class="pre">UnsafePointer</span></code>
+is intended for high-performance implementations of data
+structures.</p>
 </div>
 </div>
 <div class="section" id="related-types">
@@ -227,8 +228,8 @@ the rules are extended to that allocated type:</p>
 <p>Accessing unrelated layout compatible types requires special
 consideration. For example, Int32 and UInt32 are &#8220;obviously&#8221; layout
 compatible; however, simply storing to a location via
-UnsafeMutablePointer&lt;Int32&gt; and loading from the same location as
-UnsafePointer&lt;UInt32&gt; is undefined.</p>
+<code class="docutils literal"><span class="pre">UnsafeMutablePointer&lt;Int32&gt;</span></code> and loading from the same location as
+<code class="docutils literal"><span class="pre">UnsafePointer&lt;UInt32&gt;</span></code> is undefined.</p>
 <p>Reinterpreting a value&#8217;s bits should be done using unsafeBitCast to
 avoid type punning. For example, the above conversion can be performed
 legally as:</p>
@@ -280,10 +281,11 @@ print(b.i)
 </pre></div>
 </div>
 <p>This program exhibits undefined behavior for two reasons. First, it
-violates strict aliasing rule #1 because the same memory object may be
-accessed via unrelated class types. Second, it violates layout
-compatible rule #1 because there is no guarantee of layout among
-unrelated classes even if they are nonresilient.</p>
+violates <a class="reference internal" href="#strictaliasrules"><span>strict aliasing rule #1</span></a> because the
+same memory object may be accessed via unrelated class types. Second,
+it violates <a class="reference internal" href="#layoutcompatiblerules"><span>layout compatible rule #1</span></a>
+because there is no guarantee of layout among unrelated classes even
+if they are nonresilient.</p>
 <p id="pointercastexample">Merely forming an address that violates strict aliasing is not itself
 undefined behavior; the address must have some static use within the
 code. However, undefined behavior may occur even if those accesses are

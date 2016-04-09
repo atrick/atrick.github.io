@@ -14,7 +14,7 @@ Introduction
 Swift enforces type safe access to memory and follows strict aliasing
 rules. However, code that uses unsafe APIs or imported types can
 circumvent the language's natural type safety. Consider the following
-example of *type punning* using the UnsafePointer type::
+example of *type punning* using the ``UnsafePointer`` type::
 
   let ptrT = UnsafeMutablePointer<T>(allocatingCapacity: 1)
   // Store T at this address.
@@ -28,14 +28,15 @@ with the stored type ``T`` (see `Layout Compatible Types`_).
 
 .. admonition:: NOTE
 
-   Unsafe[Mutable]Pointer is a type safe API. When a program accesses memory
-   via UnsafePointer, The UnsafePointer element should be consistent
-   with the type used to allocate the memory. The 'unsafe' in
-   UnsafePointer actually refers to memory management--it is the
-   user's responsibility to manage the object's lifetime. Type safety
-   is not only a desirable programming model, it is an absolute
-   requirement performance reasons, and UnsafePointer is intended for
-   high-performance implementations of data structures.
+   ``Unsafe[Mutable]Pointer`` is a type safe API. When a program
+   accesses memory via ``UnsafePointer``, The ``UnsafePointer``
+   element should be consistent with the type used to allocate the
+   memory. The 'unsafe' in ``UnsafePointer`` actually refers to memory
+   management--it is the user's responsibility to manage the object's
+   lifetime. Type safety is not only a desirable programming model, it
+   is an absolute requirement performance reasons, and ``UnsafePointer``
+   is intended for high-performance implementations of data
+   structures.
 
 
 Related Types
@@ -177,8 +178,8 @@ Legally Circumventing Strict Aliasing
 Accessing unrelated layout compatible types requires special
 consideration. For example, Int32 and UInt32 are "obviously" layout
 compatible; however, simply storing to a location via
-UnsafeMutablePointer<Int32> and loading from the same location as
-UnsafePointer<UInt32> is undefined.
+``UnsafeMutablePointer<Int32>`` and loading from the same location as
+``UnsafePointer<UInt32>`` is undefined.
 
 Reinterpreting a value's bits should be done using unsafeBitCast to
 avoid type punning. For example, the above conversion can be performed
@@ -239,10 +240,11 @@ is ever dereferenced. Consider this example::
   print(b.i)
 
 This program exhibits undefined behavior for two reasons. First, it
-violates strict aliasing rule #1 because the same memory object may be
-accessed via unrelated class types. Second, it violates layout
-compatible rule #1 because there is no guarantee of layout among
-unrelated classes even if they are nonresilient.
+violates :ref:`strict aliasing rule #1 <strictaliasrules>` because the
+same memory object may be accessed via unrelated class types. Second,
+it violates :ref:`layout compatible rule #1 <layoutcompatiblerules>`
+because there is no guarantee of layout among unrelated classes even
+if they are nonresilient.
 
 .. _pointercastexample:
 
