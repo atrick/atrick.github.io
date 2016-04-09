@@ -450,7 +450,7 @@ named. Calls to ``unknown`` takes invalidly formed addresses::
     mcompatible(&i, &e1) // single case enum
     mcompatible(&t, &s2) // tuple and homogeneous struct
    
-    // struct {{I32, I32}, I32} vs. struct {I32, I32, I32}; fixed size, no spare bits
+    // struct { {I32, I32}, I32} vs. struct {I32, I32, I32}; fixed size, no spare bits
     mcompatible(&s2_1, &s3)
     
     // struct {{A, B}, C} vs. struct {A, B, C}; unknown size
