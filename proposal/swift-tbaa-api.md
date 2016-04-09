@@ -5,12 +5,9 @@ categories: proposal
 date: 2016-03-12
 ---
 
-# UnsafePointer API for Type Punning
+# UnsafePointer API for Type Punning (abandoned)
 
-* Proposal: [SE-NNNN](https://github.com/apple/swift-evolution/blob/master/proposals/NNNN-name.md)
-* Author(s): [Andrew Trick](https://github.com/atrick)
-* Status: **Awaiting review**
-* Review manager: TBD
+This is an abandoned proposal. See voidpointer.md.
 
 ## Introduction
 
