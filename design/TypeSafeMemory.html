@@ -486,10 +486,10 @@ func access&lt;T&gt;(i: inout Int32, j: inout UInt32, t: inout (Int32, Int32),
   mcompatible(&amp;i, &amp;e1) // single case enum
   mcompatible(&amp;t, &amp;s2) // tuple and homogeneous struct
 
-  // struct {{I32, I32}, I32} vs. struct {I32, I32, I32}; fixed size, no spare bits
+  // struct { {I32, I32}, I32} vs. struct {I32, I32, I32}; fixed size, no spare bits
   mcompatible(&amp;s2_1, &amp;s3)
 
-  // struct {{A, B}, C} vs. struct {A, B, C}; unknown size
+  // struct { {A, B}, C} vs. struct {A, B, C}; unknown size
   incompatible(&amp;s_sie2_e2, &amp;s_i_e2_e2)
 
   // Compatible: can load one type from an object &#39;with&#39; another type.

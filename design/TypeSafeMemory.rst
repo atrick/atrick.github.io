@@ -453,7 +453,7 @@ named. Calls to ``unknown`` takes invalidly formed addresses::
     // struct { {I32, I32}, I32} vs. struct {I32, I32, I32}; fixed size, no spare bits
     mcompatible(&s2_1, &s3)
     
-    // struct {{A, B}, C} vs. struct {A, B, C}; unknown size
+    // struct { {A, B}, C} vs. struct {A, B, C}; unknown size
     incompatible(&s_sie2_e2, &s_i_e2_e2)
    
     // Compatible: can load one type from an object 'with' another type.
