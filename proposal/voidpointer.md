@@ -10,17 +10,20 @@ date: 2016-03-23
 ## Introduction
 
 UnsafePointer and UnsafeMutable refer to a typed region of memory, and
-the compiler must be able to assume that UnsafePointer pointee type is
-consistent with other access to the same memory[1]. Consequently,
-UnsafePointer conversion exposes an easy way to abuse the type
-system. No alternative currently exists for manual memory layout and
-direct access to untyped memory, which leads to an overuse of
+the compiler must be able to assume that UnsafePointer element
+(pointee) type is consistent with other access to the same
+memory[1]. Consequently, default conversion between UnsafePointer
+element types exposes an easy way to abuse the type system. No
+alternative currently exists for manual memory layout and direct
+access to untyped memory, and that leads to an overuse of
 UnsafePointer. These uses of UnsafePointer, which depend on pointer
 type conversion, make accidental type punning likely, which is
 semantically undefined behavior and defacto undefined behavior given
 the optimizer's long time treatment of UnsafePointer.
 
-[1]:For more details, see the [UnsafePointer documentation](!!!).
+[1]:For more details, see this [Type Safe Memory
+Access](http://atrick.github.io/design/TypeSafeMemory.html)
+documentation under review.
 
 In this document, all mentions of UnsafePointer also apply to
 UnsafeMutablePointer.
@@ -30,13 +33,15 @@ UnsafeMutablePointer.
 To avoid accidental type punning, we should prohibit direct conversion
 between UnsafePointer<T> and UnsafePointer<U> unless the target of the
 conversion is UnsafePointer<Void>. To support this change we should
-provide an API for accessing an untyped region of memory. Consider
-that an UnsafePointer<Void> or OpaquePointer may be obtained from an
-external API. However, the developer may know the memory layout and
-may want to read or write elements whose types are compatible with
-that layout. If the developer cannot guarantee that all accesses to
-the same memory location have the same type, then they cannot use
-UnsafePointer to access the memory.
+provide an API for accessing an untyped region of memory.
+
+Consider that an UnsafePointer<Void> or OpaquePointer may be obtained
+from an external API. However, the developer may know the memory
+layout and may want to read or write elements whose types are
+compatible with that layout. This a reasonble use case; however,
+unless the developer can guarantee that all accesses to the same
+memory location have the same type, then they cannot use UnsafePointer
+to access the memory.
 
 ## Proposed solution
 
@@ -93,6 +98,13 @@ The stdlib String implementation likes to cast between different views
 of the string storage. An expert in this area needs to review the code
 to determine whether it follows strict type rules and how to best
 legalize the code using the proposed APIs.
+
+## Implementation Status
+
+This pull request demonstrates the changes required in the standard
+library in order to remove default UnsafePointer conversion. However,
+the type system support for implicit conversions and imported types is
+incomplete.
 
 ## Alternatives considered
 
