@@ -22,7 +22,7 @@ type conversion, make accidental type punning likely, which is
 semantically undefined behavior and defacto undefined behavior given
 the optimizer's long time treatment of UnsafePointer.
 
-[1]:http://atrick.github.io/design/TypeSafeMemory.html
+[1]:https://github.com/atrick/swift/blob/type-safe-mem-docs/docs/TypeSafeMemory.rst
 
 In this document, all mentions of UnsafePointer also apply to
 UnsafeMutablePointer.
