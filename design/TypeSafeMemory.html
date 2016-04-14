@@ -63,10 +63,13 @@ date: 2016-04-09
 </ul>
 </li>
 <li><a class="reference internal" href="#legally-circumventing-strict-aliasing" id="id7">Legally Circumventing Strict Aliasing</a></li>
-<li><a class="reference internal" href="#casting-pointers" id="id8">Casting Pointers</a></li>
-<li><a class="reference internal" href="#examples" id="id9">Examples</a><ul>
-<li><a class="reference internal" href="#related-type-examples" id="id10">Related Type Examples</a></li>
-<li><a class="reference internal" href="#layout-compatible-examples" id="id11">Layout Compatible Examples</a></li>
+<li><a class="reference internal" href="#casting-pointers" id="id8">Casting Pointers</a><ul>
+<li><a class="reference internal" href="#pointer-casting-example" id="id9">Pointer Casting Example</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#examples" id="id10">Examples</a><ul>
+<li><a class="reference internal" href="#related-type-examples" id="id11">Related Type Examples</a></li>
+<li><a class="reference internal" href="#layout-compatible-examples" id="id12">Layout Compatible Examples</a></li>
 </ul>
 </li>
 </ul>
@@ -92,11 +95,11 @@ with the stored type <code class="docutils literal"><span class="pre">T</span></
 <p class="last"><code class="docutils literal"><span class="pre">Unsafe[Mutable]Pointer</span></code> is a type safe API. When a program
 accesses memory via <code class="docutils literal"><span class="pre">UnsafePointer</span></code>, The <code class="docutils literal"><span class="pre">UnsafePointer</span></code>
 element should be consistent with the type used to allocate the
-memory. The &#8216;unsafe&#8217; in <code class="docutils literal"><span class="pre">UnsafePointer</span></code> actually refers to memory
+memory. The &#8220;unsafe&#8221; in <code class="docutils literal"><span class="pre">UnsafePointer</span></code> actually refers to memory
 management&#8211;it is the user&#8217;s responsibility to manage the object&#8217;s
 lifetime. Type safety is not only a desirable programming model, it
 is an absolute requirement performance reasons, and <code class="docutils literal"><span class="pre">UnsafePointer</span></code>
-is intended for high-performance implementations of data
+is intended for high-performance implementation of data
 structures.</p>
 </div>
 </div>
@@ -113,7 +116,7 @@ the other type as part of its own storage</li>
 </ol>
 <p>See <a class="reference internal" href="#related-type-examples">Related Type Examples</a>.</p>
 <div class="section" id="strict-alias-rules">
-<span id="strictaliasrules"></span><h3><a class="toc-backref" href="#id3">Strict Alias Rules</a><a class="headerlink" href="#strict-alias-rules" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id3">Strict Alias Rules</a><a class="headerlink" href="#strict-alias-rules" title="Permalink to this headline">¶</a></h3>
 <ol class="arabic simple">
 <li>Class references to the same object must be related.</li>
 <li>Typed pointers to overlapping memory must be related.</li>
@@ -127,8 +130,8 @@ aliasing rules, then the program exhibits undefined behavior.</p>
 <p class="last">A subtle aspect of this is that generation of an address that
 violates strict aliasing is not in itself undefined behavior. The
 address does need to be accessed by the program code, and one of
-those accesses must write to memory. For details, see
-<a class="reference internal" href="#pointercastexample"><span>pointer casting example</span></a>.</p>
+those accesses must write to memory. For details, see <a class="reference internal" href="#pointer-casting-example">Pointer
+Casting Example</a>.</p>
 </div>
 </div>
 <div class="section" id="exempt-types">
@@ -153,8 +156,8 @@ some &#8220;obvious&#8221; cases of mutually layout compatible types are:</p>
 <li>identical types and type aliases</li>
 <li>integers of the same multiple-of-8 size in bits</li>
 <li>floating point types of the same size</li>
-<li>class types and AnyObject existentials</li>
-<li>pointer types (e.g. OpaquePointer, UnsafePointer)</li>
+<li>class types and <code class="docutils literal"><span class="pre">AnyObject</span></code> existentials</li>
+<li>pointer types (e.g. <code class="docutils literal"><span class="pre">OpaquePointer</span></code>, <code class="docutils literal"><span class="pre">UnsafePointer</span></code>)</li>
 <li>thin function, C function, and block function types</li>
 <li>imported C types that have the same layout in C</li>
 <li>nonresilient structs with one stored property and their stored
@@ -184,17 +187,17 @@ properties.</p>
 </div>
 <div class="admonition-note admonition">
 <p class="first admonition-title">NOTE</p>
-<p class="last">The <a class="reference external" href="https://github.com/apple/swift/blob/master/docs/archive/Resilience.rst">resilience document</a>
+<p class="last">The <a class="reference external" href="https://github.com/apple/swift/blob/master/docs/archive/Resilience.rst">proposed resilience document</a>
 explains the impact of resilience on object layout.</p>
 </div>
 <p>See <a class="reference internal" href="#layout-compatible-examples">Layout Compatible Examples</a></p>
 <div class="section" id="layout-compatible-rules">
-<span id="layoutcompatiblerules"></span><h3><a class="toc-backref" href="#id6">Layout Compatible Rules</a><a class="headerlink" href="#layout-compatible-rules" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id6">Layout Compatible Rules</a><a class="headerlink" href="#layout-compatible-rules" title="Permalink to this headline">¶</a></h3>
 <p>The following layout rules apply to dynamic memory accesses that occur
 during program execution. In particular, they apply to access that
 originates from stored property getter and setters, reading from and
-assigning into inout variables, and reading or assigning subscripts
-(including the Unsafe[Mutable]Pointer &#8216;pointee&#8217; property and
+assigning into <code class="docutils literal"><span class="pre">inout</span></code> variables, and reading or assigning subscripts
+(including the <code class="docutils literal"><span class="pre">Unsafe[Mutable]Pointer</span></code> <code class="docutils literal"><span class="pre">pointee</span></code> property and
 subscripts). Aggregate loads and stores can be considered a sequence of
 loads and stores of named or indexed elements.</p>
 <ol class="arabic simple">
@@ -203,11 +206,11 @@ object, the relationship between their address expressions must be
 determined by Swift&#8217;s ABI for type layout. The addresses may be
 either disjoint or overlapping. If they overlap the offset must be
 determined to be either a named or indexed subobject or known byte
-offset. In other words, the access path of each load and store must
-be comparable given layout compatibility guarantees. In the case of
-inout arguments, for the purpose of this rule, the address
-expressions include both generation of the argument (caller side) and
-its use (callee side).</li>
+offset relative to the other. In other words, the access path of
+each load and store must be comparable given layout compatibility
+guarantees. In the case of inout arguments, for the purpose of this
+rule, the address expressions include both generation of the
+argument (caller side) and its use (callee side).</li>
 </ol>
 <p>Additionally, the type of the memory access itself must be compatible
 with the element type as follows:</p>
@@ -226,11 +229,11 @@ the rules are extended to that allocated type:</p>
 <div class="section" id="legally-circumventing-strict-aliasing">
 <h2><a class="toc-backref" href="#id7">Legally Circumventing Strict Aliasing</a><a class="headerlink" href="#legally-circumventing-strict-aliasing" title="Permalink to this headline">¶</a></h2>
 <p>Accessing unrelated layout compatible types requires special
-consideration. For example, Int32 and UInt32 are &#8220;obviously&#8221; layout
+consideration. For example, <code class="docutils literal"><span class="pre">Int32</span></code> and <code class="docutils literal"><span class="pre">UInt32</span></code> are &#8220;obviously&#8221; layout
 compatible; however, simply storing to a location via
 <code class="docutils literal"><span class="pre">UnsafeMutablePointer&lt;Int32&gt;</span></code> and loading from the same location as
 <code class="docutils literal"><span class="pre">UnsafePointer&lt;UInt32&gt;</span></code> is undefined.</p>
-<p>Reinterpreting a value&#8217;s bits should be done using unsafeBitCast to
+<p>Reinterpreting a value&#8217;s bits should be done using <code class="docutils literal"><span class="pre">unsafeBitCast</span></code> to
 avoid type punning. For example, the above conversion can be performed
 legally as:</p>
 <div class="highlight-swift"><div class="highlight"><pre><span class="kd">let </span><span class="nv">ptrI32</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">UnsafeMutablePointer</span><span class="o">&lt;</span><span class="n">Int32</span><span class="o">&gt;</span><span class="p">(</span><span class="n">allocatingCapacity</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span>
@@ -241,30 +244,31 @@ legally as:</p>
 <p>In the future, an API will likely exist to allow legal type
 punning. This could be useful for external APIs that require pointer
 arguments and for manual memory layout. Loads and stores of type
-punned memory would still need to follow the <a class="reference internal" href="#layoutcompatiblerules"><span>layout rules</span></a> for loads and stores, but would be exempt
-from the <a class="reference internal" href="#strictaliasrules"><span>strict alias rules</span></a>. Such an API, for
-example, would allow accessing same address as both Int32 and UInt32.</p>
+punned memory would still need to follow the <a class="reference internal" href="#layout-compatible-rules">Layout Compatible Rules</a>
+for loads and stores, but would be exempt from the <a class="reference internal" href="#strict-alias-rules">Strict Alias
+Rules</a>. Such an API, for example, would allow accessing same address
+as both <code class="docutils literal"><span class="pre">Int32</span></code> and <code class="docutils literal"><span class="pre">UInt32</span></code>.</p>
 </div>
 <div class="section" id="casting-pointers">
 <h2><a class="toc-backref" href="#id8">Casting Pointers</a><a class="headerlink" href="#casting-pointers" title="Permalink to this headline">¶</a></h2>
-<p>unsafeBitCast should generally be avoided on pointer types, and should
-almost exclusively be avoided on class types. unsafeBitCast is valid
+<p><code class="docutils literal"><span class="pre">unsafeBitCast</span></code> should generally be avoided on pointer types, and should
+almost exclusively be avoided on class types. <code class="docutils literal"><span class="pre">unsafeBitCast</span></code> is valid
 for pointer to integer conversions. It is also used internally to
 convert between nondereferenceable pointer types, which avoids the
 need to add builtin conversions for all combinations of pointer
 types. As with any conversion to and from opaque pointers, this
 presents an opportunity for type punning, so must be used with extreme
 caution to avoid undefined behavior.</p>
-<p>unsafeBitCast is even more problematic for class types. First, layout
-needs to be considered when Optional or existential class types are
-involved. Note that the internal _unsafeReferenceCast API is preferred
+<p><code class="docutils literal"><span class="pre">unsafeBitCast</span></code> is even more problematic for class types. First, layout
+needs to be considered when <code class="docutils literal"><span class="pre">Optional</span></code> or existential class types are
+involved. Note that the internal <code class="docutils literal"><span class="pre">_unsafeReferenceCast</span></code> API is preferred
 in those cases, because it always handles conversions to and from
 optionals and existentials correctly.</p>
-<p>Furthermore, unsafeBitCast of class types may introduce undefined
+<p>Furthermore, <code class="docutils literal"><span class="pre">unsafeBitCast</span></code> of class types may introduce undefined
 behavior at the point of access. Normal class casts and class
 existential casts rely on the dynamic type to be a subclass of or
 conform to the static type at the point of the cast. However, an
-unsafeBitCast will succeed when the static and dynamic types are
+<code class="docutils literal"><span class="pre">unsafeBitCast</span></code> will succeed when the static and dynamic types are
 unrelated, which leads to undefined behavior if the cast pointer
 is ever dereferenced. Consider this example:</p>
 <div class="highlight-swift"><div class="highlight"><pre>class A {
@@ -281,12 +285,13 @@ print(b.i)
 </pre></div>
 </div>
 <p>This program exhibits undefined behavior for two reasons. First, it
-violates <a class="reference internal" href="#strictaliasrules"><span>strict aliasing rule #1</span></a> because the
-same memory object may be accessed via unrelated class types. Second,
-it violates <a class="reference internal" href="#layoutcompatiblerules"><span>layout compatible rule #1</span></a>
-because there is no guarantee of layout among unrelated classes even
-if they are nonresilient.</p>
-<p id="pointercastexample">Merely forming an address that violates strict aliasing is not itself
+violates <a class="reference internal" href="#strict-alias-rules">Strict Alias Rules</a> (#1) because the same memory object may
+be accessed via unrelated class types. Second, it violates <a class="reference internal" href="#layout-compatible-rules">Layout
+Compatible Rules</a> (#1) because there is no guarantee of layout among
+unrelated classes even if they are nonresilient.</p>
+<div class="section" id="pointer-casting-example">
+<h3><a class="toc-backref" href="#id9">Pointer Casting Example</a><a class="headerlink" href="#pointer-casting-example" title="Permalink to this headline">¶</a></h3>
+<p>Merely forming an address that violates strict aliasing is not itself
 undefined behavior; the address must have some static use within the
 code. However, undefined behavior may occur even if those accesses are
 themselves never executed. In other words undefined behavior is caused
@@ -328,11 +333,12 @@ public func foo&lt;T : SomeClass&gt;(obj: T, isActualClass: Bool) -&gt; Int {
 </pre></div>
 </div>
 </div>
+</div>
 <div class="section" id="examples">
-<h2><a class="toc-backref" href="#id9">Examples</a><a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id10">Examples</a><a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="related-type-examples">
-<h3><a class="toc-backref" href="#id10">Related Type Examples</a><a class="headerlink" href="#related-type-examples" title="Permalink to this headline">¶</a></h3>
-<p>Calls to <code class="docutils literal"><span class="pre">related</span></code> and <code class="docutils literal"><span class="pre">unrelated</span></code> obey the strict alias rule <a class="reference internal" href="#strictaliasrules"><span>strict alias rule</span></a>:</p>
+<h3><a class="toc-backref" href="#id11">Related Type Examples</a><a class="headerlink" href="#related-type-examples" title="Permalink to this headline">¶</a></h3>
+<p>Calls to <code class="docutils literal"><span class="pre">related</span></code> and <code class="docutils literal"><span class="pre">unrelated</span></code> obey the <a class="reference internal" href="#strict-alias-rules">Strict Alias Rules</a>:</p>
 <div class="highlight-swift"><div class="highlight"><pre>protocol P {
   var i: Int { get }
 }
@@ -401,10 +407,10 @@ func access(
 </div>
 </div>
 <div class="section" id="layout-compatible-examples">
-<h3><a class="toc-backref" href="#id11">Layout Compatible Examples</a><a class="headerlink" href="#layout-compatible-examples" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id12">Layout Compatible Examples</a><a class="headerlink" href="#layout-compatible-examples" title="Permalink to this headline">¶</a></h3>
 <p>Calls to <code class="docutils literal"><span class="pre">mcompatible</span></code>, <code class="docutils literal"><span class="pre">compatible</span></code>, and <code class="docutils literal"><span class="pre">incompatible</span></code> reflect
-<a class="reference internal" href="#layoutcompatiblerules"><span>layout compatible rules</span></a> as they are
-named. Calls to <code class="docutils literal"><span class="pre">unknown</span></code> takes invalidly formed addresses:</p>
+<a class="reference internal" href="#layout-compatible-rules">Layout Compatible Rules</a> as their names signify. Calls to <code class="docutils literal"><span class="pre">unknown</span></code>
+take invalidly formed addresses:</p>
 <div class="highlight-swift"><div class="highlight"><pre>class C {
   var i: Int32 = 7
 }
@@ -458,6 +464,7 @@ struct S_I_E2_E2 {
   var e2b: E2
 }
 
+// Signify mutually compatible access.
 func mcompatible(x: inout Int32, _ y: inout UInt32) {}
 func mcompatible(x: inout C, _ y: inout AnyObject) {}
 func mcompatible&lt;T&gt;(x: inout UnsafePointer&lt;T&gt;, _ y: inout OpaquePointer) {}
@@ -466,6 +473,7 @@ func mcompatible(x: inout Int32, _ y: inout E1) {}
 func mcompatible(x: inout (Int32, Int32), _ y: inout S2) {}
 func mcompatible(x: inout S2_1, _ y: inout S3) {}
 
+// Signify one-way layout compatibility.
 func compatible(x: inout Int32, with y: inout E2) {}
 func compatible(x: inout S1, with y: inout S2) {}
 
@@ -498,7 +506,7 @@ func access&lt;T&gt;(i: inout Int32, j: inout UInt32, t: inout (Int32, Int32),
   compatible(&amp;i, with: &amp;e2)  // load the payload from a single payload enum
   compatible(&amp;s1, with: &amp;s2) // load struct {A} from struct {A, B}
 
-  // Layout compatibility makes no guarantees on class layout. The
+  // Layout compatibility places no guarantees on class layout. The
   // following unknown call takes two addresses of compatible type
   // (Int32), but the addresses are generated from incompatible class
   // types. Even though the class definitions of &#39;C&#39; and &#39;D&#39; are
@@ -509,6 +517,8 @@ func access&lt;T&gt;(i: inout Int32, j: inout UInt32, t: inout (Int32, Int32),
   // Properties within heap storage follow the usual layout rules.
   func getStructPointer(iptr: UnsafeMutablePointer&lt;Int32&gt;)
   -&gt; UnsafeMutablePointer&lt;S1&gt; {
+    // Convert from UnsafeMutablePointer&lt;Int32&gt; to UnsafeMutablePointer&lt;S1&gt;
+    // with a hypothetical &#39;unsafeCastElement&#39; label to be explicit.
     return UnsafeMutablePointer(unsafeCastElement: iptr)
   }
   mcompatible(&amp;c.i, &amp;getStructPointer(&amp;c.i).pointee)
@@ -531,7 +541,7 @@ func access&lt;T&gt;(i: inout Int32, j: inout UInt32, t: inout (Int32, Int32),
 
     <div class="footer" role="contentinfo">
         &copy; Copyright 2016, Apple Inc.
-      Last updated on 2016-04-09.
+      Last updated on 2016-04-13.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
     </div>
   </body>

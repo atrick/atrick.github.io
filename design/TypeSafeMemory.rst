@@ -31,11 +31,11 @@ with the stored type ``T`` (see `Layout Compatible Types`_).
    ``Unsafe[Mutable]Pointer`` is a type safe API. When a program
    accesses memory via ``UnsafePointer``, The ``UnsafePointer``
    element should be consistent with the type used to allocate the
-   memory. The 'unsafe' in ``UnsafePointer`` actually refers to memory
+   memory. The "unsafe" in ``UnsafePointer`` actually refers to memory
    management--it is the user's responsibility to manage the object's
    lifetime. Type safety is not only a desirable programming model, it
    is an absolute requirement performance reasons, and ``UnsafePointer``
-   is intended for high-performance implementations of data
+   is intended for high-performance implementation of data
    structures.
 
 
@@ -52,8 +52,6 @@ Two types are related if any of these conditions hold:
 4. both types may be classes and one may be a superclass of the other
 
 See `Related Type Examples`_.
-
-.. _strictaliasrules:
 
 Strict Alias Rules
 ------------------
@@ -72,8 +70,8 @@ aliasing rules, then the program exhibits undefined behavior.
    A subtle aspect of this is that generation of an address that
    violates strict aliasing is not in itself undefined behavior. The
    address does need to be accessed by the program code, and one of
-   those accesses must write to memory. For details, see
-   :ref:`pointer casting example <pointercastexample>`.
+   those accesses must write to memory. For details, see `Pointer
+   Casting Example`_.
 
 Exempt Types
 ------------
@@ -98,8 +96,8 @@ some "obvious" cases of mutually layout compatible types are:
   - identical types and type aliases
   - integers of the same multiple-of-8 size in bits
   - floating point types of the same size
-  - class types and AnyObject existentials
-  - pointer types (e.g. OpaquePointer, UnsafePointer)
+  - class types and ``AnyObject`` existentials
+  - pointer types (e.g. ``OpaquePointer``, ``UnsafePointer``)
   - thin function, C function, and block function types
   - imported C types that have the same layout in C
   - nonresilient structs with one stored property and their stored
@@ -130,13 +128,11 @@ Layout compatibility is transitive.
 
 .. admonition:: NOTE
 
-   The `resilience document
+   The `proposed resilience document
    <https://github.com/apple/swift/blob/master/docs/archive/Resilience.rst>`_
    explains the impact of resilience on object layout.
 
 See `Layout Compatible Examples`_
-
-.. _layoutcompatiblerules:
 
 Layout Compatible Rules
 -----------------------
@@ -144,8 +140,8 @@ Layout Compatible Rules
 The following layout rules apply to dynamic memory accesses that occur
 during program execution. In particular, they apply to access that
 originates from stored property getter and setters, reading from and
-assigning into inout variables, and reading or assigning subscripts
-(including the Unsafe[Mutable]Pointer 'pointee' property and
+assigning into ``inout`` variables, and reading or assigning subscripts
+(including the ``Unsafe[Mutable]Pointer`` ``pointee`` property and
 subscripts). Aggregate loads and stores can be considered a sequence of
 loads and stores of named or indexed elements.
 
@@ -154,11 +150,11 @@ loads and stores of named or indexed elements.
    determined by Swift's ABI for type layout. The addresses may be
    either disjoint or overlapping. If they overlap the offset must be
    determined to be either a named or indexed subobject or known byte
-   offset. In other words, the access path of each load and store must
-   be comparable given layout compatibility guarantees. In the case of
-   inout arguments, for the purpose of this rule, the address
-   expressions include both generation of the argument (caller side) and
-   its use (callee side).
+   offset relative to the other. In other words, the access path of
+   each load and store must be comparable given layout compatibility
+   guarantees. In the case of inout arguments, for the purpose of this
+   rule, the address expressions include both generation of the
+   argument (caller side) and its use (callee side).
 
 Additionally, the type of the memory access itself must be compatible
 with the element type as follows:
@@ -176,12 +172,12 @@ Legally Circumventing Strict Aliasing
 =====================================
 
 Accessing unrelated layout compatible types requires special
-consideration. For example, Int32 and UInt32 are "obviously" layout
+consideration. For example, ``Int32`` and ``UInt32`` are "obviously" layout
 compatible; however, simply storing to a location via
 ``UnsafeMutablePointer<Int32>`` and loading from the same location as
 ``UnsafePointer<UInt32>`` is undefined.
 
-Reinterpreting a value's bits should be done using unsafeBitCast to
+Reinterpreting a value's bits should be done using ``unsafeBitCast`` to
 avoid type punning. For example, the above conversion can be performed
 legally as::
 
@@ -192,10 +188,10 @@ legally as::
 In the future, an API will likely exist to allow legal type
 punning. This could be useful for external APIs that require pointer
 arguments and for manual memory layout. Loads and stores of type
-punned memory would still need to follow the :ref:`layout rules
-<layoutcompatiblerules>` for loads and stores, but would be exempt
-from the :ref:`strict alias rules <strictaliasrules>`. Such an API, for
-example, would allow accessing same address as both Int32 and UInt32.
+punned memory would still need to follow the `Layout Compatible Rules`_
+for loads and stores, but would be exempt from the `Strict Alias
+Rules`_. Such an API, for example, would allow accessing same address
+as both ``Int32`` and ``UInt32``.
 
 .. FIXME Reference voidpointer.md once it is a proposal.
 
@@ -204,8 +200,8 @@ Casting Pointers
 
 .. FIXME Reference this from SIL.rst, Class TBAA
 
-unsafeBitCast should generally be avoided on pointer types, and should
-almost exclusively be avoided on class types. unsafeBitCast is valid
+``unsafeBitCast`` should generally be avoided on pointer types, and should
+almost exclusively be avoided on class types. ``unsafeBitCast`` is valid
 for pointer to integer conversions. It is also used internally to
 convert between nondereferenceable pointer types, which avoids the
 need to add builtin conversions for all combinations of pointer
@@ -213,17 +209,17 @@ types. As with any conversion to and from opaque pointers, this
 presents an opportunity for type punning, so must be used with extreme
 caution to avoid undefined behavior.
 
-unsafeBitCast is even more problematic for class types. First, layout
-needs to be considered when Optional or existential class types are
-involved. Note that the internal _unsafeReferenceCast API is preferred
+``unsafeBitCast`` is even more problematic for class types. First, layout
+needs to be considered when ``Optional`` or existential class types are
+involved. Note that the internal ``_unsafeReferenceCast`` API is preferred
 in those cases, because it always handles conversions to and from
 optionals and existentials correctly.
 
-Furthermore, unsafeBitCast of class types may introduce undefined
+Furthermore, ``unsafeBitCast`` of class types may introduce undefined
 behavior at the point of access. Normal class casts and class
 existential casts rely on the dynamic type to be a subclass of or
 conform to the static type at the point of the cast. However, an
-unsafeBitCast will succeed when the static and dynamic types are
+``unsafeBitCast`` will succeed when the static and dynamic types are
 unrelated, which leads to undefined behavior if the cast pointer
 is ever dereferenced. Consider this example::
 
@@ -240,13 +236,13 @@ is ever dereferenced. Consider this example::
   print(b.i)
 
 This program exhibits undefined behavior for two reasons. First, it
-violates :ref:`strict aliasing rule #1 <strictaliasrules>` because the
-same memory object may be accessed via unrelated class types. Second,
-it violates :ref:`layout compatible rule #1 <layoutcompatiblerules>`
-because there is no guarantee of layout among unrelated classes even
-if they are nonresilient.
+violates `Strict Alias Rules`_ (#1) because the same memory object may
+be accessed via unrelated class types. Second, it violates `Layout
+Compatible Rules`_ (#1) because there is no guarantee of layout among
+unrelated classes even if they are nonresilient.
 
-.. _pointercastexample:
+Pointer Casting Example
+-----------------------
 
 Merely forming an address that violates strict aliasing is not itself
 undefined behavior; the address must have some static use within the
@@ -295,7 +291,7 @@ Examples
 Related Type Examples
 ---------------------
 
-Calls to ``related`` and ``unrelated`` obey the strict alias rule :ref:`strict alias rule <strictaliasrules>`::
+Calls to ``related`` and ``unrelated`` obey the `Strict Alias Rules`_::
    
   protocol P {
     var i: Int { get }
@@ -366,8 +362,8 @@ Layout Compatible Examples
 --------------------------
 
 Calls to ``mcompatible``, ``compatible``, and ``incompatible`` reflect
-:ref:`layout compatible rules <layoutcompatiblerules>` as they are
-named. Calls to ``unknown`` takes invalidly formed addresses::
+`Layout Compatible Rules`_ as their names signify. Calls to ``unknown``
+take invalidly formed addresses::
  
   class C {
     var i: Int32 = 7
@@ -421,7 +417,8 @@ named. Calls to ``unknown`` takes invalidly formed addresses::
     var e2a: E2
     var e2b: E2
   }
-   
+
+  // Signify mutually compatible access.
   func mcompatible(x: inout Int32, _ y: inout UInt32) {}
   func mcompatible(x: inout C, _ y: inout AnyObject) {}
   func mcompatible<T>(x: inout UnsafePointer<T>, _ y: inout OpaquePointer) {}
@@ -429,7 +426,8 @@ named. Calls to ``unknown`` takes invalidly formed addresses::
   func mcompatible(x: inout Int32, _ y: inout E1) {}
   func mcompatible(x: inout (Int32, Int32), _ y: inout S2) {}
   func mcompatible(x: inout S2_1, _ y: inout S3) {}
-   
+
+  // Signify one-way layout compatibility.
   func compatible(x: inout Int32, with y: inout E2) {}
   func compatible(x: inout S1, with y: inout S2) {}
    
@@ -462,7 +460,7 @@ named. Calls to ``unknown`` takes invalidly formed addresses::
     compatible(&i, with: &e2)  // load the payload from a single payload enum
     compatible(&s1, with: &s2) // load struct {A} from struct {A, B}
    
-    // Layout compatibility makes no guarantees on class layout. The
+    // Layout compatibility places no guarantees on class layout. The
     // following unknown call takes two addresses of compatible type
     // (Int32), but the addresses are generated from incompatible class
     // types. Even though the class definitions of 'C' and 'D' are
@@ -473,6 +471,8 @@ named. Calls to ``unknown`` takes invalidly formed addresses::
     // Properties within heap storage follow the usual layout rules.
     func getStructPointer(iptr: UnsafeMutablePointer<Int32>)
     -> UnsafeMutablePointer<S1> {
+      // Convert from UnsafeMutablePointer<Int32> to UnsafeMutablePointer<S1>
+      // with a hypothetical 'unsafeCastElement' label to be explicit.
       return UnsafeMutablePointer(unsafeCastElement: iptr)
     }
     mcompatible(&c.i, &getStructPointer(&c.i).pointee)
