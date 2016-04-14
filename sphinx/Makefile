@@ -1,6 +1,8 @@
 # Makefile for Sphinx documentation
 #
 
+EXTERNAL_FILES = /s/sdocs/docs/TypeSafeMemory.rst
+
 # Don't try to bring in LangRef.html
 OVERRIDEOPTS = -D "html_additional_pages.LangRef=dummy.html"
 
@@ -25,6 +27,7 @@ clean:
 	-rm -rf $(BUILDDIR)/*
 
 html:
+	cp $(EXTERNAL_FILES) ../design/
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(OVERRIDEOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
