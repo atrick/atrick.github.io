@@ -72,7 +72,7 @@ extension OpaquePointer {
 Occasionally, we need to convert from a VoidPointer to an
 UnsafePointer. This should only be done in very rare circumstances
 when the author understands the compiler's strict type rules for
-UnsafePointer. Although this ccould be done by casting through an
+UnsafePointer. Although this could be done by casting through an
 OpaquePointer, an explicit unsafe pointer cast would makes the risks
 more obvious and self-documenting. For example:
 
@@ -109,7 +109,7 @@ legalize the code using the proposed APIs.
 
 ## Implementation Status
 
-On the follwoing branch, I've made most of the necessary changes to
+On the following branch, I've made most of the necessary changes to
 support the addition of VoidPointer and the removal of infered
 UnsafePointer conversion:
 https://github.com/atrick/swift/tree/unsafeptr_convert
