@@ -96,7 +96,7 @@ struct VoidPointer : Hashable, _Pointer {
 
   func store<T>(value : T)
 
-  func initialize<T>(_ : T.Type, from: VoidPointer, count: Int)
+  func initialize<T>(from: UnsafePointer<T>, count: Int)
 
   var hashValue: Int
 }
@@ -196,14 +196,16 @@ some stdlib code to use an explicit API for conversion, such as
 
 The stdlib String implementation does a considerable amount of casting
 between different views of the string storage. The current
-implementation already demonstrates awareness of strict aliasing
-rules. The rules are followed by ensuring that the string buffer only
-be accessed using the appropriate `CodeUnit` within Swift code. For
-interoperability and optimization, String buffers frequently need to
-be cast to and from CChar. This is safe as long access to the buffer
-from Swift is guarded by dynamic checks of the encoding type. These
-unsafe, but dynamically legal conversion points will now be labeled
-with `unsafeCastPointer`.
+implementation already demonstrates some awareness of strict aliasing
+rules. The rules are generally followed by ensuring that the string
+buffer only be accessed using the appropriate `CodeUnit` within Swift
+code. For interoperability and optimization, String buffers frequently
+need to be cast to and from CChar. This is safe as long access to the
+buffer from Swift is guarded by dynamic checks of the encoding
+type. These unsafe, but dynamically legal conversion points will now
+be labeled with `unsafeCastPointer`. There are still some UTF8/UTF16
+conversions that need to be auditted by someone more familiar with the
+code.
 
 Any external Swift projects that rely on type inference to convert
 between UnsafePointer types will need to take action. The developer
@@ -260,6 +262,12 @@ as transparent as possible.
 
 
 ## Alternatives Considered
+
+The obvious downside to introducing a new nominal pointer type is the
+duplication of much of UnsafePointer's existing API surface. I believe
+this API explosion is fairly limited, and it would always be possible
+to implement the UnsafePointer API's in terms of the VoidPointer APIs
+wherever performance is not a major concern.
 
 In some cases, developers can safely reinterpret values to achieve the
 same effect as type punning:
