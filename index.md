@@ -7,4 +7,4 @@ title: atrick - Working Swift Docs
 
 [Design](design)
 
-[Proposals](proposals)
+[Proposals](proposal)
