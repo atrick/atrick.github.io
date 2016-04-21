@@ -94,9 +94,9 @@ struct VoidPointer : Hashable, _Pointer {
 
   func load<T>(_ : T.Type) -> T
 
-  func initialize<T>(with: T, count: Int)
+  func initialize<T>(with: T, count: Int) -> VoidPointer
 
-  func initialize<T>(from: UnsafePointer<T>, count: Int)
+  func initialize<T>(from: UnsafePointer<T>, count: Int) -> VoidPointer
 
   var hashValue: Int
 }
