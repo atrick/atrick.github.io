@@ -50,8 +50,8 @@ Introduce a `VoidPointer` type along with an API for obtaining a
 `VoidPointer` value at a relative byte offset and loading and
 storing arbitrary types at that location.
 
-Statically prohibit general `UnsafePointer` conversion while allowing
-`UnsafePointer` to `VoidPointer` conversion.
+Statically prohibit inferred `UnsafePointer` conversion while allowing
+inferred `UnsafePointer` to `VoidPointer` conversion.
 
 
 ## Options
@@ -211,12 +211,18 @@ implementation already demonstrates some awareness of strict aliasing
 rules. The rules are generally followed by ensuring that the `StringBuffer`
 only be accessed using the appropriate `CodeUnit` within Swift
 code. For interoperability and optimization, String buffers frequently
-need to be cast to and from `CChar`. This is safe as long access to the
+need to be cast to and from `CChar`. This is valid as long access to the
 buffer from Swift is guarded by dynamic checks of the encoding
 type. These unsafe, but dynamically legal conversion points will now
 be labeled with `unsafeCastPointer`. There are still some UTF8/UTF16
 conversions that should be auditted by someone more familiar with the
 code.
+
+The StringAPI tests should probably be rewritten with VoidPointer.
+
+The NSStringAPI utilties and tests may need to be ported to VoidPointer
+
+The CoreAudio utilities and tests likely need to be ported to VoidPointer.
 
 Any external Swift projects that rely on type inference to convert
 between `UnsafePointer` types will need to take action. The developer
