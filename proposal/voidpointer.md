@@ -1,26 +1,26 @@
 ---
 layout: default
-title: VoidPointer API for In-Memory Layout
+title: UnsafeBytePointer API for In-Memory Layout
 categories: proposal
 date: 2016-03-23
 ---
 
-# VoidPointer API for In-Memory Layout
+# UnsafeBytePointer API for In-Memory Layout
 
 ## Introduction
 
 `UnsafePointer` and `UnsafeMutable` refer to a typed region of memory,
 and the compiler must be able to assume that `UnsafePointer` element
-(`pointee`) type is consistent with other access to the same
+(`Pointee`) type is consistent with other access to the same
 memory. See [proposed Type Safe Memory Access
 documentation][1]. Consequently, inferred conversion between
-UnsafePointer element types exposes an easy way to abuse the type
+`UnsafePointer` element types exposes an easy way to abuse the type
 system. No alternative currently exists for manual memory layout and
 direct access to untyped memory, and that leads to an overuse of
-UnsafePointer. These uses of UnsafePointer, which depend on pointer
+`UnsafePointer`. These uses of `UnsafePointer`, which depend on pointer
 type conversion, make accidental type punning likely. Type punning via
-UnsafePointer is semantically undefined behavior and de facto undefined
-behavior given the optimizer's long-time treatment of UnsafePointer.
+`UnsafePointer` is semantically undefined behavior and de facto undefined
+behavior given the optimizer's long-time treatment of `UnsafePointer`.
 
 [1]:https://github.com/atrick/swift/blob/type-safe-mem-docs/docs/TypeSafeMemory.rst
 
@@ -30,56 +30,61 @@ In this document, all mentions of `UnsafePointer` also apply to
 
 ## Motivation
 
-To avoid accidental type punning, we should prohibit direct conversion
-between `UnsafePointer<T>` and `UnsafePointer<U>` unless the target of the
-conversion is `UnsafePointer<Void>`. To support this change we should
-provide an API for accessing an untyped region of memory.
+To avoid accidental type punning, we should prohibit inferred
+conversion between `UnsafePointer<T>` and `UnsafePointer<U>` unless
+the target of the conversion is a nondereferenceable pointer (currently
+represented as `UnsafePointer<Void>`).
 
-Consider that an `UnsafePointer<Void>` or `OpaquePointer` may be obtained
-from an external API. However, the developer may know the memory
-layout and may want to read or write elements whose types are
-compatible with that layout. This a reasonable use case; however,
-unless the developer can guarantee that all accesses to the same
-memory location have the same type, then they cannot use `UnsafePointer`
-to access the memory.
+To support this change we should introduce a new pointer type that
+does not bind type type of its `Pointee`. Such a new pointer type
+would provide an ideal foundation for an API that allows bytewise
+pointer arithmetic and a legal, well-defined means to access an
+untyped region of memory.
+
+To motivate such an API, consider that an `UnsafePointer<Void>` or
+`OpaquePointer` may be currently be obtained from an external
+API. However, the developer may know the memory layout and may want to
+read or write elements whose types are compatible with that
+layout. This a reasonable use case, but unless the developer can
+guarantee that all accesses to the same memory location have the same
+type, then they cannot use `UnsafePointer` to access the memory
+without risking undefined behavior.
 
 
 ## Proposed solution
 
-Introduce a `VoidPointer` type along with an API for obtaining a
-`VoidPointer` value at a relative byte offset and loading and
+Introduce an `UnsafeBytePointer` type along with an API for obtaining a
+`UnsafeBytePointer` value at a relative byte offset and loading and
 storing arbitrary types at that location.
 
 Statically prohibit inferred `UnsafePointer` conversion while allowing
-inferred `UnsafePointer` to `VoidPointer` conversion.
+inferred `UnsafePointer` to `UnsafeBytePointer` conversion.
 
+`UnsafeBytePointer` meets multiple requirements:
 
-## Options
-
-Alternative names for the `VoidPointer` type are open for debate.
-
-`VoidPointer` is not necessarily a good name for an API that allows
-pointer arithmetic. There are really two requirements being met:
-
-1. Type-unsafe access to memory
+1. An untyped pointer to memory
 2. Pointer arithmetic within byte-addressable memory
+3. Type-unsafe access to memory (legal type punning)
 
-`VoidPointer` is the correct name for the first, but not the second
-bit of functionality. An API that fulfills the second requirement
-would be more familiarly named `IntPtr`, but I believe that name can
-also be misleading.
+`UnsafeBytePointer` will replace `UnsafeMutablePointer<Void>` as the
+representation for untyped memory. For API clarify we could consider a
+typealias for `VoidPointer`. I don't think a separate
+`VoidPointer` type would be useful--there's no danger that
+`UnsafeBytePointer` will be casually dereferenced, and don't see the
+danger in allowing pointer arithmetic since the only reasonable
+interpretation is that of a byte-addressable memory.
 
-Providing an API for type-unsafe memory access would not serve much
+Providing an API for type-unsafe memory access would not serve a
 purpose without the ability to compute byte offsets. Of course, we
 could require users to convert back and forth using bitPatterns, but I
 think that would be awkward and only obscure the purpose of the
-`VoidPointer` type.
+`UnsafeBytePointer` type.
 
 
 ## Detailed design
 
 ```swift
-struct VoidPointer : Hashable, _Pointer {
+struct UnsafeBytePointer : Hashable, _Pointer {
 
   let _rawValue: Builtin.RawPointer
   
@@ -94,53 +99,53 @@ struct VoidPointer : Hashable, _Pointer {
 
   func load<T>(_ : T.Type) -> T
 
-  func initialize<T>(with: T, count: Int) -> VoidPointer
+  func initialize<T>(with: T, count: Int) -> UnsafeBytePointer
 
-  func initialize<T>(from: UnsafePointer<T>, count: Int) -> VoidPointer
+  func initialize<T>(from: UnsafePointer<T>, count: Int) -> UnsafeBytePointer
 
   var hashValue: Int
 }
 
 extension OpaquePointer {
-  init(_ : VoidPointer)
+  init(_ : UnsafeBytePointer)
 }
 
 extension Int {
-  init(bitPattern: VoidPointer)
+  init(bitPattern: UnsafeBytePointer)
 }
 
 extension UInt {
-  init(bitPattern: VoidPointer)
+  init(bitPattern: UnsafeBytePointer)
 }
 
-extension VoidPointer : RandomAccessIndex {
+extension UnsafeBytePointer : RandomAccessIndex {
   typealias Distance = Int
 
-  func successor() -> VoidPointer
-  func predecessor() -> VoidPointer
-  func distance(to : VoidPointer) -> Int
-  func advanced(by : Int) -> VoidPointer
+  func successor() -> UnsafeBytePointer
+  func predecessor() -> UnsafeBytePointer
+  func distance(to : UnsafeBytePointer) -> Int
+  func advanced(by : Int) -> UnsafeBytePointer
 }
 
-func == (lhs: VoidPointer, rhs: VoidPointer) -> Bool
+func == (lhs: UnsafeBytePointer, rhs: UnsafeBytePointer) -> Bool
 
-func < (lhs: VoidPointer, rhs: VoidPointer) -> Bool
+func < (lhs: UnsafeBytePointer, rhs: UnsafeBytePointer) -> Bool
 
-func + (lhs: VoidPointer, rhs: Int) -> VoidPointer
+func + (lhs: UnsafeBytePointer, rhs: Int) -> UnsafeBytePointer
 
-func + (lhs: Int, rhs: VoidPointer) -> VoidPointer
+func + (lhs: Int, rhs: UnsafeBytePointer) -> UnsafeBytePointer
 
-func - (lhs: VoidPointer, rhs: Int) -> VoidPointer
+func - (lhs: UnsafeBytePointer, rhs: Int) -> UnsafeBytePointer
 
-func - (lhs: VoidPointer, rhs: VoidPointer) -> Int
+func - (lhs: UnsafeBytePointer, rhs: UnsafeBytePointer) -> Int
 
-func += (lhs: inout VoidPointer, rhs: Int)
+func += (lhs: inout UnsafeBytePointer, rhs: Int)
 
-func -= (lhs: inout VoidPointer, rhs: Int)
+func -= (lhs: inout UnsafeBytePointer, rhs: Int)
 
 ```
 
-Occasionally, we need to convert from a `VoidPointer` to an
+Occasionally, we need to convert from a `UnsafeBytePointer` to an
 `UnsafePointer`. This should only be done in very rare circumstances
 when the author understands the compiler's strict type rules for
 `UnsafePointer`. Although this could be done by casting through an
@@ -149,17 +154,18 @@ more obvious and self-documenting. For example:
 
 ```swift
 extension UnsafePointer {
-  init(unsafeCastPointer from: VoidPointer) {
+  init(_ from: UnsafeBytePointer, toPointee: Pointee.type) {
     _rawValue = from._rawValue
   }
 }
 ```
 
-Similarly, conversion between `UnsafePointer` types must be explicitly labeled:
+Similarly, conversion between `UnsafePointer` types must be spelled
+with an explicitly `Pointee` type:
 
 ```swift
 extension UnsafePointer {
-  init<U>(unsafeCastPointer from: UnsafePointer<U>) {
+  init<U>(_ from: UnsafePointer<U>, toPointee: Pointee.Type) {
      _rawValue = from._rawValue
   }
 }
@@ -185,23 +191,27 @@ extension UnsafePointer {
 }
 ```
 
+We may consider renaming this label to avoid implying that it is a
+checked cast (as in C++ dynamic_cast).
+
+
 ## Impact on existing code
 
 All occurrences of `Unsafe[Mutable]Pointer<Void>` in the standard
-library are converted to `VoidPointer`. e.g. `unsafeAddress()` now
-returns `VoidPointer`, not `UnsafePointer<Void>`.
+library are converted to `UnsafeBytePointer`. e.g. `unsafeAddress()` now
+returns `UnsafeBytePointer`, not `UnsafePointer<Void>`.
 
 Some other occurrences of `Unsafe[Mutable]Pointer` in the standard
-library are replaced with `VoidPointer`, either because the code was
+library are replaced with `UnsafeBytePointer`, either because the code was
 playing too loosely with strict aliasing rules, or because the code
 really wanted to perform pointer arithmetic on byte-addresses.
 
-`StringCore.baseAddress` changes from `OpaquePointer` to `VoidPointer`
+`StringCore.baseAddress` changes from `OpaquePointer` to `UnsafeBytePointer`
 because it is computing byte offsets and accessing the memory
 `OpaquePointer` is meant for bridging, but should be truly opaque:
-nondereferencable and not involved in address computation.
+nondereferenceable and not involved in address computation.
 
-Disallowing inferred `VoidPointer` to `UnsafePointer` direct conversion
+Disallowing inferred `UnsafeBytePointer` to `UnsafePointer` direct conversion
 requires some standard library code to use an explicit
 `unsafeCastPointer` label for unsafe conversion.
 
@@ -218,24 +228,25 @@ be labeled with `unsafeCastPointer`. There are still some UTF8/UTF16
 conversions that should be auditted by someone more familiar with the
 code.
 
-The StringAPI tests should probably be rewritten with VoidPointer.
+The StringAPI tests should probably be rewritten with `UnsafeBytePointer`.
 
-The NSStringAPI utilties and tests may need to be ported to VoidPointer
+The NSStringAPI utilties and tests may need to be ported to `UnsafeBytePointer`
 
-The CoreAudio utilities and tests likely need to be ported to VoidPointer.
+The CoreAudio utilities and tests likely need to be ported to
+`UnsafeBytePointer`.
 
 Any external Swift projects that rely on type inference to convert
 between `UnsafePointer` types will need to take action. The developer
 will need to determine whether type punning is necessary. If so, they
-will need to migrate to the `VoidPointer` API. Otherwise, they can
+will need to migrate to the `UnsafeBytePointer` API. Otherwise, they can
 work around the new restriction by using an `unsafeCastPointer` or
 `dynamicCastPointer` label.
 
 
-## Implementation Status
+## Implementation status
 
 On my [unsafeptr_convert branch][2], I've made most of the necessary changes to
-support the addition of `VoidPointer` and the removal of inferred
+support the addition of `UnsafeBytePointer` and the removal of inferred
 `UnsafePointer` conversion.
 
 [2]:https://github.com/atrick/swift/tree/unsafeptr_convert
@@ -243,24 +254,25 @@ support the addition of `VoidPointer` and the removal of inferred
 There are a several things going on here in order to make it possible
 to build the standard library with the changes:
 
-- A new `VoidPointer` type is defined. Suggestions for refactoring welcome.
+- A new `UnsafeBytePointer` type is defined. Suggestions for
+  refactoring welcome.
 
-- unsafeAddressOf returns `VoidPointer` instead of `UnsafePointer<Void>`.
+- unsafeAddressOf returns `UnsafeBytePointer` instead of `UnsafePointer<Void>`.
 
-- The default Unsafe[Mutable]Pointer conversion is removed.
+- The default `Unsafe[Mutable]Pointer` conversion is removed.
 
 - Many places in the standard library were relying on default
   conversion in potentially type-unsafe situations. These conversions
   now either take a 'mutating' label or an 'unsafeCastElement' label.
 
-- The type system becomes aware of the special `VoidPointer` type
+- The type system becomes aware of the special `UnsafeBytePointer` type
 
-- The type system handles conversions between `VoidPointer` and other
+- The type system handles conversions between `UnsafeBytePointer` and other
   points (attempting to emulate the old behavior of
   `UnsafePointer<Void>`).
 
 - External APIs still require `UnsafeMutablePointer<Void>`, so some of
-  these arguments are explicitly converted from `VoidPointer`. I expect
+  these arguments are explicitly converted from `UnsafeBytePointer`. I expect
   these to be cleaned up with proper type system support.
 
 I don't want to commit all of these changes as-is because it may break
@@ -278,12 +290,12 @@ implicit conversion and imported types.
 as transparent as possible.
 
 
-## Alternatives Considered
+## Alternatives considered
 
 The obvious downside to introducing a new nominal pointer type is the
 duplication of much of `UnsafePointer`'s existing API surface. I believe
 this API explosion is fairly limited, and it would always be possible
-to implement the `UnsafePointer` API's in terms of the `VoidPointer` APIs
+to implement the `UnsafePointer` API's in terms of the `UnsafeBytePointer` API
 wherever performance is not a major concern.
 
 In some cases, developers can safely reinterpret values to achieve the
@@ -296,8 +308,10 @@ let u = unsafeBitCast(ptrI32[0], to: UInt32.self)
 ```
 
 Note that all access to the underlying memory is performed with the
-same element type.  This is perfectly legitimate and preferred to
-dropping to `VoidPointer` but simply isn't a complete solution.
+same element type. This is perfectly legitimate, but simply isn't a
+complete solution. It also does not eliminate the inherent danger in
+declaring a typed pointer and expecting it to point to values of a
+different type.
 
 We considered adding a `typePunnedMemory` property to the existing
 `Unsafe[Mutabale]Pointer` API. This would provide a legal way to
@@ -310,7 +324,7 @@ The opaque `_RawByte` struct is a technique that allows for
 byte-addressable buffers while hiding the dangerous side effects of
 type punning (a _RawByte could be loaded but it's value cannot be
 directly inspected). `UnsafePointer<_RawByte>` is a clever alternative
-to `VoidPointer`, but the API is less obvious and more cumbersome
+to `UnsafeBytePointer`, but the API is less obvious and more cumbersome
 without a distinct nominal type. For example, how would
 `UnsafePointer<T>` to `UnsafePointer<_RawByte>` conversion be
 implemented? Another problem is that the loaded `_RawByte` could be
@@ -322,6 +336,13 @@ actually exhibit undefined behavior if the user recovers the loaded
 value.
 
 Alternatively, the compiler could associate special semantics with a
-UnsafePointer bound to a concrete generic parameter type, such as
+`UnsafePointer` bound to a concrete generic parameter type, such as
 `UnsafePointer<RawByte>`. However, only a distinct nominal type makes it
 clear that the type has special semantics and allows static enforcement.
+
+## Future improvements
+
+`UnsafeBytePointer` should eventually support unaligned memory access. I
+believe that we will eventually have a modifer that allows "packed"
+struct members. At that time we may also want to add a "packed" flag to
+`UnsafeBytePointer`'s `load` and `initialize` methods.
