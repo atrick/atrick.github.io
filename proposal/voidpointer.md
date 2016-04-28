@@ -263,7 +263,8 @@ to build the standard library with the changes:
 
 - Many places in the standard library were relying on default
   conversion in potentially type-unsafe situations. These conversions
-  now either take a 'mutating' label or an 'unsafeCastElement' label.
+  now either take an explicit label, such as 'toPointee', 'mutating'
+  or 'dynamicCast'.
 
 - The type system becomes aware of the special `UnsafeBytePointer` type
 
