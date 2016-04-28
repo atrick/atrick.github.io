@@ -271,23 +271,7 @@ to build the standard library with the changes:
   points (attempting to emulate the old behavior of
   `UnsafePointer<Void>`).
 
-- External APIs still require `UnsafeMutablePointer<Void>`, so some of
-  these arguments are explicitly converted from `UnsafeBytePointer`. I expect
-  these to be cleaned up with proper type system support.
-
-I don't want to commit all of these changes as-is because it may break
-code that relies on implicit `UnsafePointer` conversions and imported
-types (I've already partially fixed this, but the type system work is
-incomplete). My plan is as follows:
-
-1. Get most of these changes into the tree without actually
-removing the default `UnsafePointer` conversion.
-
-2. Get assistance from type system experts to finish support for
-implicit conversion and imported types.
-
-3. Finally, remove the `UnsafePointer` conversion, which should now be
-as transparent as possible.
+- The type system imports `void*` as UnsafeBytePointer.
 
 
 ## Alternatives considered
