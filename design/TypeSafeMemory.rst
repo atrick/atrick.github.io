@@ -26,19 +26,22 @@ The program exhibits undefined behavior unless ``T`` and ``U`` are
 `related types`_ and the loaded type ``U`` is **layout compatible**
 with the stored type ``T`` (see `Layout Compatible Types`_).
 
-.. admonition:: NOTE
+.. note::
 
-   ``Unsafe[Mutable]Pointer`` is a type safe API. When a program
-   accesses memory via ``UnsafePointer``, The ``UnsafePointer``
-   element should be consistent with the type used to allocate the
-   memory. The "unsafe" in ``UnsafePointer`` actually refers to memory
-   management--it is the user's responsibility to manage the object's
-   lifetime. Type safety is not only a desirable programming model, it
-   is an absolute requirement performance reasons, and ``UnsafePointer``
-   is intended for high-performance implementation of data
-   structures.
+   ``Unsafe[Mutable]Pointer`` needs to provide a type safe API. In
+   other words, when a program accesses memory via ``UnsafePointer``,
+   the ``UnsafePointer`` element should be consistent with the type
+   used to allocate the memory. The "unsafe" in ``UnsafePointer``
+   actually refers to memory management--it is the user's
+   responsibility to manage the object's lifetime. The type safety of
+   UnsafePointer is not only a desirable programming model, it is an
+   absolute requirement performance reasons, as ``UnsafePointer`` is
+   intended for high-performance implementation of data
+   structures. Converting between ``UnsafePointer`` values with
+   different ``Pointee`` types, as shown above, violates this type
+   safety, and will likely be disallowed in future versions of the API.
 
-
+ 
 Related Types
 =============
 
@@ -47,7 +50,7 @@ Two types are related if any of these conditions hold:
 1. the types may be identical or aliases of each other
 2. one type may be a tuple, enum, or struct that contains the other
    type as part of its own storage
-3. one type may be an existential such that a conformance may contain
+3. one type may be an existential such that conforming types may contain
    the other type as part of its own storage
 4. both types may be classes and one may be a superclass of the other
 
@@ -60,12 +63,17 @@ Strict Alias Rules
 
 2. Typed pointers to overlapping memory must be related.
 
-Given any two memory accesses, at least of which is a store, that
-exist statically within the same Swift program, if the address
-expressions depend on a value that dynamically violates strict
-aliasing rules, then the program exhibits undefined behavior.
+As a simple example, consider an address of type ``*Int`` and an
+address of type ``*AnyObject``. Since ``Int`` cannot conform to a
+class protocol, the types are unrelated; therefore, the addresses must
+be disjoint.
 
-.. admonition:: NOTE
+It is undefined behavior for a program to have two memory accesses
+where one or both accesses are stores and where the address
+expressions for those accesses dynamically violate strict aliasing
+rules.
+
+.. note::
 
    A subtle aspect of this is that generation of an address that
    violates strict aliasing is not in itself undefined behavior. The
@@ -78,9 +86,9 @@ Exempt Types
 
 Swift does not currently specify any types that are exempt from strict
 aliasing. In the future, it may be useful to declare certain types as
-exempt--for example, that ``UInt8`` aliases with all other types. Since
-this is not currently the case, all accesses to a memory location must
-have a related type.
+exempt--for example, that ``Int8`` (aka ``CChar``) aliases with all
+other types. Since this is not currently the case, all accesses to a
+memory location must have a related type.
 
 
 Layout Compatible Types
@@ -120,17 +128,22 @@ Types are layout compatible, but not mutually so, in the following cases:
 
 Layout compatibility is transitive.
 
-.. admonition:: NOTE
+.. note::
 
    Unrelated class types have no guaranteed heap layout compatibility
    for except for the memory layout within the object's stored
    properties.
 
-.. admonition:: NOTE
+   .. FIXME I think _getUnsafePointerToStoredProperties currently
+      violates this as written. We will need a special attribute for
+      classes that we expect to be laid out a certain way.
 
-   The `proposed resilience document
-   <https://github.com/apple/swift/blob/master/docs/archive/Resilience.rst>`_
+.. note::
+
+   `Library Evolution Support in Swift`__
    explains the impact of resilience on object layout.
+
+__ https://github.com/apple/swift/blob/master/docs/LibraryEvolution.rst
 
 See `Layout Compatible Examples`_
 
@@ -188,10 +201,10 @@ legally as::
 In the future, an API will likely exist to allow legal type
 punning. This could be useful for external APIs that require pointer
 arguments and for manual memory layout. Loads and stores of type
-punned memory would still need to follow the `Layout Compatible Rules`_
-for loads and stores, but would be exempt from the `Strict Alias
-Rules`_. Such an API, for example, would allow accessing same address
-as both ``Int32`` and ``UInt32``.
+punned memory would still need to follow the `Layout Compatible
+Rules`_, but would be exempt from the `Strict Alias Rules`_. Such an
+API, for example, would allow accessing same address as both ``Int32``
+and ``UInt32``.
 
 .. FIXME Reference voidpointer.md once it is a proposal.
 

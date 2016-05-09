@@ -1,3 +1,5 @@
+# Copy html from the build dir to the repository.
+
 import string
 import os.path
 from datetime import date
