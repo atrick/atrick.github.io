@@ -2,7 +2,7 @@
 layout: default
 title:  UnsafeBytePointer API for In-Memory Layout
 categories: proposal
-date: 2016-05-08
+date: 2016-05-12
 ---
 # UnsafeBytePointer API for In-Memory Layout
 
@@ -118,26 +118,128 @@ struct UnsafeBytePointer : Hashable, _Pointer {
   init?(bitPattern: Int)
   init?(bitPattern: UInt)
 
+  /// Load a single `T` value from memory.
+  ///
+  /// - Precondition: The underlying pointer is properly aligned for
+  ///                 accessing `T`.
   func load<T>(_ : T.Type) -> T
 
+  /// Load a `T` value at the specified `index` from this memory as if it
+  /// contains at least `index` + 1 contiguous values of type `T`.
+  ///
+  /// - Precondition: The underlying pointer is properly aligned for
+  ///                 accessing `T`.
+  func load<T>(asArrayOf _: T.Type, at index: Int) -> T {
+    return (self + strideof(T) * index).load(T)
+  }
+
+  /// Initialize this memory location with `count` consecutive copies
+  /// of `newValue`
+  ///
+  /// Returns a `UnsafeBytePointer` to memory one byte past the last
+  /// initialized value.
+  ///
+  /// - Precondition: The memory is not initialized.
+  ///
+  /// - Precondition: The underlying pointer is properly aligned for
+  ///                 accessing `T`.
+  ///
+  /// - Precondition: `count` is non-negative.
+  ///
+  /// - Postcondition: The memory is initialized; the value should eventually
+  ///   be destroyed or moved from to avoid leaks.
+  func initialize<T>(_: T.Type, with newValue: T, count: Int = 1)
+    -> UnsafeBytePointer
+
+  /// Initialize the memory location at `index` with `newValue` as if this
+  /// memory holds at least `index` + 1 contiguous values of type `T`.
+  ///
+  /// Returns a `UnsafeBytePointer` to memory one byte past the
+  /// initialized value.
+  ///
+  /// - Precondition: The memory is not initialized.
+  ///
+  /// - Precondition: The underlying pointer is properly aligned for
+  ///                 accessing `T`.
+  ///
+  /// - Postcondition: The memory is initialized; the value should eventually
+  ///   be destroyed or moved from to avoid leaks.
+  func initialize<T>(asArrayOf _: T.Type, initialValue: T, at index: Int)
+    -> UnsafeBytePointer
+
+  /// Allocate and point at uninitialized memory for `size` bytes with
+  /// `alignTo` alignment.
+  ///
+  /// - Postcondition: The memory is allocated, but not initialized.
   @warn_unused_result
   init(allocatingBytes size: Int, alignedTo: Int)
 
+  /// Allocate and point at uninitialized memory for `count` values of `T`.
+  ///
+  /// - Postcondition: The memory is allocated, but not initialized.
   @warn_unused_result
   init<T>(allocatingCapacity count: Int, of: T.Type)
 
+  /// Deallocate uninitialized memory allocated for `size` bytes with
+  /// `alignTo` alignment.
+  ///
+  /// - Precondition: The memory is not initialized.
+  ///
+  /// - Postcondition: The memory has been deallocated.
   func deallocateBytes(_ size: Int, alignedTo: Int)
 
+  /// Deallocate uninitialized memory allocated for `count` values of `T`.
+  ///
+  /// - Precondition: The memory is not initialized.
+  ///
+  /// - Postcondition: The memory has been deallocated.
   func deallocateCapacity<T>(_ num: Int, of: T.Type)
 
-  // Returns a pointer one byte after the initialized memory.
-  func initialize<T>(with newValue: T, count: Int = 1) -> UnsafeBytePointer
-
-  // Returns a pointer one byte after the initialized memory.
+  /// Initialize memory starting at `self` with `count` `T` values
+  /// beginning at `from`, proceeding forward from `self` to `self +
+  /// count - 1`.
+  ///
+  /// Returns a `UnsafeBytePointer` to memory one byte past the last
+  /// initialized value.
+  ///
+  /// - Precondition: `count >= 0`
+  ///
+  /// - Precondition: `self` either precedes `source` or follows `source +
+  ///   count - 1`.
+  ///
+  /// - Precondition: The memory at `self..<self + count` is uninitialized
+  ///   and the `T` values at `source..<source + count` are
+  ///   initialized.
+  ///
+  /// - Precondition: The underlying pointer is properly aligned for
+  ///                 accessing `T`.
+  ///
+  /// - Postcondition: The `T` values at `self..<self + count` and
+  ///   `source..<source + count` are initialized.
   func initialize<T>(from: UnsafePointer<T>, count: Int) -> UnsafeBytePointer
 
+  /// Initialize memory starting at `self` with the `count` `T` values
+  /// at `source`, proceeding backward from `self + count - 1` to
+  /// `self`.
+  ///
+  /// Use `initializeBackwardFrom` when copying elements into later memory
+  /// that may overlap with the source range.
+  ///
+  /// - Precondition: `count >= 0`
+  ///
+  /// - Precondition: `source` either precedes `self` or follows
+  ///   `self + count - 1`.
+  ///
+  /// - Precondition: The `T` values at `self..<self + count` and
+  ///   `source..<source + count` are initialized.
   func initializeBackward<T>(from source: UnsafePointer<T>, count: Int)
 
+  /// De-initialize the `count` `T`s starting at `self`, returning
+  /// their memory to an uninitialized state.
+  ///
+  /// - Precondition: The `T`s at `self..<self + count` are initialized.
+  ///
+  /// - Postcondition: The memory is uninitialized.
   func deinitialize<T>(_ : T.Type, count: Int = 1)
 }
 
@@ -189,10 +291,10 @@ makes the risks more obvious and self-documenting. For example:
 
 ```swift
 extension UnsafePointer {
-  init(_ from: UnsafeBytePointer, toPointee: Pointee.type)
+  init(_ from: UnsafeBytePointer, to: Pointee.type)
 }
 extension UnsafeMutablePointer {
-  init(_ from: UnsafeBytePointer, toPointee: Pointee.type)
+  init(_ from: UnsafeBytePointer, to: Pointee.type)
 }
 ```
 
@@ -201,11 +303,11 @@ with an explicitly `Pointee` type:
 
 ```swift
 extension UnsafePointer {
-  init<U>(_ from: UnsafePointer<U>, toPointee: Pointee.Type)
-  init<U>(_ from: UnsafeMutablePointer<U>, toPointee: Pointee.Type)
+  init<U>(_ from: UnsafePointer<U>, to: Pointee.Type)
+  init<U>(_ from: UnsafeMutablePointer<U>, to: Pointee.Type)
 }
 extension UnsafeMutablePointer {
-  init<U>(_ from: UnsafeMutablePointer<U>, toPointee: Pointee.Type)
+  init<U>(_ from: UnsafeMutablePointer<U>, to: Pointee.Type)
 }
 ```
 
@@ -220,10 +322,10 @@ Any Swift projects that rely on type inference to convert between
 `UnsafePointer` types will need to take action. The developer needs to
 determine whether type punning is necessary. If so, they must migrate
 to the `UnsafeBytePointer` API. Otherwise, they can work around the
-new restriction by using a `toPointee`, or `mutating` label.
+new restriction by using a `to`, or `mutating` label.
 
 Disallowing inferred `UnsafePointer` direct conversion requires some
-standard library code to use an explicit `toPointee` label for unsafe
+standard library code to use an explicit `to` label for unsafe
 conversions that may violate strict aliasing.
 
 All occurrences of `Unsafe[Mutable]Pointer<Void>` in the standard
@@ -249,7 +351,7 @@ code. For interoperability and optimization, String buffers frequently
 need to be cast to and from `CChar`. This is valid as long access to the
 buffer from Swift is guarded by dynamic checks of the encoding
 type. These unsafe, but dynamically legal conversion points will now
-be labeled with `toPointee`.
+be labeled with `to`.
 
 `CoreAudio` utilities now use an UnsafeBytePointer.
 
@@ -274,7 +376,7 @@ to build the standard library with the changes:
 
 - The standard library was relying on inferred UnsafePointer
   conversion in over 100 places. Most of these conversions now either
-  take an explicit label, such as 'toPointee', 'mutating'. Some have
+  take an explicit label, such as `to`, `mutating`. Some have
   been rewritten.
 
 - Several places in the standard library that were playing loosely
@@ -389,46 +491,12 @@ enforce legal pointer conversion and rid Swift code of undefined
 behavior. I can't do that while allowing UnsafePointer<Void>
 conversions.
 
-## API improvements
-
-As proposed, the `initialize` API infers the stored value:
-
-```swift
-func initialize<T>(with newValue: T, count: Int = 1) -> UnsafeBytePointer
-```
-
-This is somewhat dangerous because the developer may not realize the
-size of the object(s) that will be written to memory. This can be
-easily asserted by checking the return pointer:
-
-```swift
-let newptr = ptr.initialize(with: 3)
-assert(newptr - ptr == 8)
-```
-
-As an alternative, we could force the user to provide the expected type
-name in the `initialize` invocation:
-
-```swift
-func initialize<T>(_ T.Type, with newValue: T, count: Int = 1)
-  -> UnsafeBytePointer
-```
-
 ## Future improvements
 
 `UnsafeBytePointer` should eventually support unaligned memory access. I
 believe that we will eventually have a modifier that allows "packed"
 struct members. At that time we may also want to add a "packed" flag to
 `UnsafeBytePointer`'s `load` and `initialize` methods.
-
-When accessing a memory buffer, it is generally convenient to cast to
-a type with known layout and compute offsets relative to the type's
-size. This is how `UnsafePointer<Pointee>` works. A generic
-`UnsafeTypePunnedPointer<Pointee>` could be introduced with the same
-interface as `UnsafePointer<Pointer>`, but without the strict aliasing
-requirements. This seems like an overdesign simply to avoid calling
-`strideof()` in an rare use case, but nothing prevents adding this type later.
-
 
 ## UnsafeBytePointer example
 
