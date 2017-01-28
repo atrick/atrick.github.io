@@ -8,6 +8,12 @@ This is work-in-progress, not an official language specification.
 
 .. contents:: :local:
    
+TODO
+====
+
+- Types imported from C may alias other C type with a structurally
+  equivalent prefix. This includes the stdlib CTypes. e.g. Int/Int64.
+
 Introduction
 ============
 

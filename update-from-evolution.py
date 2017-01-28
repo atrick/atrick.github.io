@@ -15,7 +15,7 @@ date: $Date
 """)
 
 proposalnames = [
-    ("/s/swift-evolution/proposals/XXXX-unsafebytepointer.md", "voidpointer.md")
+    ("/s/swift-evolution/proposals/XXXX-unsaferawpointer.md", "voidpointer.md")
 ]
 
 for (origfname, newfname) in proposalnames:
