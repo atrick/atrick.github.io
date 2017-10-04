@@ -14,6 +14,9 @@ TODO
 - Types imported from C may alias other C type with a structurally
   equivalent prefix. This includes the stdlib CTypes. e.g. Int/Int64.
 
+- AnyObect is related to UnsafePointer. UnsafePointer and
+  UnsafeRawPointer are related. So pointer-to-anypointer my alias.
+
 Introduction
 ============
 
